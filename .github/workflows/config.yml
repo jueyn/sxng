@@ -31,8 +31,8 @@ jobs:
           rm -rf ./searxng
       - name: Commit
         run: |
-          git config user.name github-actions
-          git config user.email github-actions@github.com
+          git config user.name "jueyn"
+          git config user.email "129744577+jueyn@users.noreply.github.com"
           git remote set-url origin https://${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
           git add .
           git commit --allow-empty -m "$(git log -1 --pretty=%s)"
