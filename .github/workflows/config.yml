@@ -2,7 +2,7 @@ name: config
 
 on:
   workflow_run:
-    workflows: ["check"]
+    workflows: [check]
     branches: [master]
     types:
       - completed

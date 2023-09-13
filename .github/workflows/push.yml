@@ -2,7 +2,7 @@ name: push
 
 on:
   workflow_run:
-    workflows: [create]
+    workflows: [check, create]
     branches: [master]
     types:
       - completed
