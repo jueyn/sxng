@@ -17,9 +17,9 @@ jobs:
       - name: Wait for config to succeed
         if: ${{ github.event.workflow_run.conclusion != 'success' }}
         run: exit 1
-      - name: checkout code
+      - name: Checkout code
         uses: actions/checkout@v4
-      - name: build and settings
+      - name: Build and settings
         run: |
           git clone https://github.com/paulgoio/searxng.git
           docker build --tag searxng-dev:latest ./searxng
@@ -29,7 +29,7 @@ jobs:
           sed -i "s/# results_on_new_tab: false/results_on_new_tab: true/" ./settings.yml
           sed -i -e "/autocomplete:/s/\"google\"/\"\"/g" ./settings.yml
           rm -rf ./searxng
-      - name: commit
+      - name: Commit
         run: |
           git config user.name github-actions
           git config user.email github-actions@github.com
