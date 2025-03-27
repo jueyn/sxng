@@ -33,9 +33,9 @@ brand:
 search:
   # Filter results. 0: None, 1: Moderate, 2: Strict
   safe_search: 2
-  # Existing autocomplete backends: "dbpedia", "duckduckgo", "google", "yandex", "mwmbl",
-  # "seznam", "startpage", "stract", "swisscows", "qwant", "wikipedia" - leave blank to turn it off
-  # by default.
+  # Existing autocomplete backends: "360search", "baidu", "brave", "dbpedia", "duckduckgo", "google", "yandex",
+  # "mwmbl", "seznam", "sogou", "stract", "swisscows", "qwant", "wikipedia" -
+  # leave blank to turn it off by default.
   autocomplete: ""
   # minimun characters to type before autocompleter starts
   autocomplete_min: 0
@@ -145,14 +145,24 @@ ui:
   # URL formatting: pretty, full or host
   url_formatting: pretty
 
-# Lock arbitrary settings on the preferences page.  To find the ID of the user
-# setting you want to lock, check the ID of the form on the page "preferences".
+# Lock arbitrary settings on the preferences page.
 #
 # preferences:
 #   lock:
+#     - categories
 #     - language
 #     - autocomplete
+#     - favicon
+#     - safesearch
 #     - method
+#     - doi_resolver
+#     - locale
+#     - theme
+#     - results_on_new_tab
+#     - infinite_scroll
+#     - search_on_category_select
+#     - method
+#     - image_proxy
 #     - query_in_title
 
 # searx supports result proxification using an external service:
@@ -214,14 +224,15 @@ outgoing:
   #    - fe80::/126
 
 # External plugin configuration, for more details see
-#   https://docs.searxng.org/dev/plugins.html
+#   https://docs.searxng.org/admin/settings/settings_plugins.html
 #
 # plugins:
-#   - plugin1
-#   - plugin2
+#   - mypackage.mymodule.MyPlugin
+#   - mypackage.mymodule.MyOtherPlugin
 #   - ...
 
 # Comment or un-comment plugin to activate / deactivate by default.
+#   https://docs.searxng.org/admin/settings/settings_plugins.html
 #
 # enabled_plugins:
 #   # these plugins are enabled if nothing is configured ..
@@ -323,9 +334,24 @@ categories_as_tabs:
   social media:
 
 engines:
+  - name: 360search
+    engine: 360search
+    shortcut: 360so
+    disabled: true
+
+  - name: 360search videos
+    engine: 360search_videos
+    shortcut: 360sov
+    disabled: true
+
   - name: 9gag
     engine: 9gag
     shortcut: 9g
+    disabled: true
+
+  - name: acfun
+    engine: acfun
+    shortcut: acf
     disabled: true
 
   - name: adobe stock
@@ -357,6 +383,33 @@ engines:
     adobe_content_types: ["audio"]
     timeout: 6
     disabled: true
+
+  - name: alexandria
+    engine: json_engine
+    shortcut: alx
+    categories: general
+    paging: true
+    search_url: https://api.alexandria.org/?a=1&q={query}&p={pageno}
+    results_query: results
+    title_query: title
+    url_query: url
+    content_query: snippet
+    timeout: 1.5
+    disabled: true
+    about:
+      website: https://alexandria.org/
+      official_api_documentation: https://github.com/alexandria-org/alexandria-api/raw/master/README.md
+      use_official_api: true
+      require_api_key: false
+      results: JSON
+
+  # - name: astrophysics data system
+  #   engine: astrophysics_data_system
+  #   sort: asc
+  #   weight: 5
+  #   categories: [science]
+  #   api_key: your-new-key
+  #   shortcut: ads
 
   - name: alpine linux packages
     engine: alpinelinux
@@ -412,6 +465,14 @@ engines:
     engine: archlinux
     shortcut: al
 
+  - name: nixos wiki
+    engine: mediawiki
+    shortcut: nixw
+    base_url: https://wiki.nixos.org/
+    search_type: text
+    disabled: true
+    categories: [it, software wikis]
+
   - name: artic
     disabled: true
     engine: artic
@@ -437,6 +498,27 @@ engines:
     engine: bandcamp
     shortcut: bc
     categories: music
+
+  - name: baidu
+    baidu_category: general
+    categories: [general]
+    engine: baidu
+    shortcut: bd
+    disabled: true
+
+  - name: baidu images
+    baidu_category: images
+    categories: [images]
+    engine: baidu
+    shortcut: bdi
+    disabled: true
+
+  - name: baidu kaifa
+    baidu_category: it
+    categories: [it]
+    engine: baidu
+    shortcut: bdk
+    disabled: true
 
   - name: wikipedia
     engine: wikipedia
@@ -517,6 +599,24 @@ engines:
     shortcut: chef
     # to show premium or plus results too:
     # skip_premium: false
+
+  - name: chinaso news
+    chinaso_category: news
+    engine: chinaso
+    shortcut: chinaso
+    disabled: true
+
+  - name: chinaso images
+    chinaso_category: images
+    engine: chinaso
+    shortcut: chinasoi
+    disabled: true
+
+  - name: chinaso videos
+    chinaso_category: videos
+    engine: chinaso
+    shortcut: chinasov
+    disabled: true
 
   - name: cloudflareai
     engine: cloudflareai
@@ -691,17 +791,18 @@ engines:
       results: HTML
 
   # - name: elasticsearch
-  #   shortcut: es
+  #   shortcut: els
   #   engine: elasticsearch
   #   base_url: http://localhost:9200
   #   username: elastic
   #   password: changeme
   #   index: my-index
+  #   enable_http: true
   #   # available options: match, simple_query_string, term, terms, custom
   #   query_type: match
   #   # if query_type is set to custom, provide your query here
-  #   #custom_query_json: {"query":{"match_all": {}}}
-  #   #show_metadata: false
+  #   # custom_query_json: {"query":{"match_all": {}}}
+  #   # show_metadata: false
   #   disabled: true
 
   - name: wikidata
@@ -1046,16 +1147,20 @@ engines:
     # Instanes will be selected randomly, see https://api.invidious.io/ for
     # instances that are stable (good uptime) and close to you.
     base_url:
-      - https://invidious.io.lol
-      - https://invidious.fdn.fr
-      - https://yt.artemislena.eu
-      - https://invidious.tiekoetter.com
-      - https://invidious.flokinet.to
-      - https://vid.puffyan.us
-      - https://invidious.privacydev.net
-      - https://inv.tux.pizza
+      - https://invidious.adminforge.de
+      - https://inv.nadeko.net
     shortcut: iv
     timeout: 3.0
+    disabled: true
+
+  - name: ipernity
+    engine: ipernity
+    shortcut: ip
+    disabled: true
+
+  - name: iqiyi
+    engine: iqiyi
+    shortcut: iq
     disabled: true
 
   - name: jisho
@@ -1133,8 +1238,7 @@ engines:
     engine: libretranslate
     # https://github.com/LibreTranslate/LibreTranslate?tab=readme-ov-file#mirrors
     base_url:
-      - https://translate.terraprint.co
-      - https://trans.zillyhuhn.com
+      - https://libretranslate.com/translate
     # api_key: abc123
     shortcut: lt
     disabled: true
@@ -1333,6 +1437,13 @@ engines:
       require_api_key: false
       results: JSON
 
+  - name: openclipart
+    engine: openclipart
+    shortcut: ocl
+    inactive: true
+    disabled: true
+    timeout: 30
+
   - name: openlibrary
     engine: openlibrary
     shortcut: ol
@@ -1418,9 +1529,12 @@ engines:
     frontend_url: https://srv.piped.video
     # Instance will be selected randomly, for more see https://piped-instances.kavin.rocks/
     backend_url:
-      - https://pipedapi.kavin.rocks
-      - https://pipedapi-libre.kavin.rocks
       - https://pipedapi.adminforge.de
+      - https://pipedapi.nosebs.ru
+      - https://pipedapi.ducks.party
+      - https://pipedapi.reallyaweso.me
+      - https://api.piped.private.coffee
+      - https://pipedapi.darkness.services
 
   - name: piped.music
     engine: piped
@@ -1532,6 +1646,10 @@ engines:
       use_official_api: false
       require_api_key: false
       results: HTML
+
+  - name: public domain image archive
+    engine: public_domain_image_archive
+    shortcut: pdia
 
   - name: pubmed
     engine: pubmed
@@ -1661,9 +1779,35 @@ engines:
     about:
       website: https://searchmysite.net
 
+  - name: selfhst icons
+    engine: selfhst
+    shortcut: si
+    inactive: true
+    disabled: true
+
   - name: sepiasearch
     engine: sepiasearch
     shortcut: sep
+
+  - name: sogou
+    engine: sogou
+    shortcut: sogou
+    disabled: true
+
+  - name: sogou images
+    engine: sogou_images
+    shortcut: sogoui
+    disabled: true
+
+  - name: sogou videos
+    engine: sogou_videos
+    shortcut: sogouv
+    disabled: true
+
+  - name: sogou wechat
+    engine: sogou_wechat
+    shortcut: sogouw
+    disabled: true
 
   - name: soundcloud
     engine: soundcloud
@@ -1754,11 +1898,26 @@ engines:
 
   - name: startpage
     engine: startpage
-    shortcut: sp
-    timeout: 6.0
     disabled: true
+    shortcut: sp
+    startpage_categ: web
+    categories: [general, web]
     additional_tests:
       rosebud: *test_rosebud
+
+  - name: startpage news
+    engine: startpage
+    disabled: true
+    startpage_categ: news
+    categories: [news, web]
+    shortcut: spn
+
+  - name: startpage images
+    engine: startpage
+    disabled: true
+    startpage_categ: images
+    categories: [images, web]
+    shortcut: spi
 
   - name: tokyotoshokan
     engine: tokyotoshokan
@@ -1777,15 +1936,15 @@ engines:
   # For this demo of the sqlite engine download:
   #   https://liste.mediathekview.de/filmliste-v2.db.bz2
   # and unpack into searx/data/filmliste-v2.db
-  # Query to test: "!demo concert"
+  # Query to test: "!mediathekview concert"
   #
-  # - name: demo
+  # - name: mediathekview
   #   engine: sqlite
-  #   shortcut: demo
-  #   categories: general
-  #   result_template: default.html
+  #   shortcut: mediathekview
+  #   categories: [general, videos]
+  #   result_type: MainResult
   #   database: searx/data/filmliste-v2.db
-  #   query_str:  >-
+  #   query_str: >-
   #     SELECT title || ' (' || time(duration, 'unixepoch') || ')' AS title,
   #            COALESCE( NULLIF(url_video_hd,''), NULLIF(url_video_sd,''), url_video) AS url,
   #            description AS content
