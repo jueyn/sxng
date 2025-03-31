@@ -41,7 +41,7 @@ search:
   autocomplete_min: 0
   # backend for the favicon near URL in search results.
   # Available resolvers: "allesedv", "duckduckgo", "google", "yandex" - leave blank to turn it off by default.
-  favicon_resolver: "google"
+  favicon_resolver: ""
   # Default search language - leave blank to detect from browser information or
   # use codes from 'languages.py'
   default_lang: "auto"
@@ -95,7 +95,7 @@ server:
   # If your instance owns a /etc/searxng/settings.yml file, then set the following
   # values there.
 
-  secret_key: "c621a92fa3b3b3d7bcde2e32f3602d5e"  # Is overwritten by ${SEARXNG_SECRET}
+  secret_key: "ultrasecretkey"  # Is overwritten by ${SEARXNG_SECRET}
   # Proxy image results through SearXNG. Is overwritten by ${SEARXNG_IMAGE_PROXY}
   image_proxy: false
   # 1.0 and 1.1 are supported
