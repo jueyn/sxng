@@ -34,7 +34,7 @@ search:
   # Filter results. 0: None, 1: Moderate, 2: Strict
   safe_search: 2
   # Existing autocomplete backends: "360search", "baidu", "brave", "dbpedia", "duckduckgo", "google", "yandex",
-  # "mwmbl", "seznam", "sogou", "stract", "swisscows", "qwant", "wikipedia" -
+  # "mwmbl", "naver", "seznam", "sogou", "startpage", "stract", "swisscows", "quark", "qwant", "wikipedia" -
   # leave blank to turn it off by default.
   autocomplete: ""
   # minimun characters to type before autocompleter starts
@@ -83,7 +83,7 @@ server:
   port: 8080
   bind_address: "0.0.0.0"
   # public URL of the instance, to ensure correct inbound links. Is overwritten
-  # by ${SEARXNG_URL}.
+  # by ${SEARXNG_BASE_URL}.
   base_url: false  # "http://example.com/location"
   # rate limit the number of request on the instance, block some bots.
   # Is overwritten by ${SEARXNG_LIMITER}
@@ -101,7 +101,8 @@ server:
   # 1.0 and 1.1 are supported
   http_protocol_version: "1.1"
   # POST queries are more secure as they don't show up in history but may cause
-  # problems when using Firefox containers
+  # problems when using Firefox containers.
+  # Is overwritten by ${SEARXNG_METHOD}
   method: "POST"
   default_http_headers:
     X-Download-Options: noopen
@@ -165,18 +166,6 @@ ui:
 #     - image_proxy
 #     - query_in_title
 
-# searx supports result proxification using an external service:
-# https://github.com/asciimoo/morty uncomment below section if you have running
-# morty proxy the key is base64 encoded (keep the !!binary notation)
-# Note: since commit af77ec3, morty accepts a base64 encoded key.
-#
-# result_proxy:
-#   url: http://127.0.0.1:3000/
-#   # the key is a base64 encoded string, the YAML !!binary prefix is optional
-#   key: !!binary "your_morty_proxy_key"
-#   # [true|false] enable the "proxy" button next to each result
-#   proxify_results: true
-
 # communication with search engines
 #
 outgoing:
@@ -223,36 +212,45 @@ outgoing:
   #    - 1.1.1.2
   #    - fe80::/126
 
-# External plugin configuration, for more details see
+# Plugin configuration, for more details see
 #   https://docs.searxng.org/admin/settings/settings_plugins.html
 #
-# plugins:
-#   - mypackage.mymodule.MyPlugin
-#   - mypackage.mymodule.MyOtherPlugin
-#   - ...
+plugins:
 
-# Comment or un-comment plugin to activate / deactivate by default.
-#   https://docs.searxng.org/admin/settings/settings_plugins.html
-#
-# enabled_plugins:
-#   # these plugins are enabled if nothing is configured ..
-#   - 'Basic Calculator'
-#   - 'Hash plugin'
-#   - 'Self Information'
-#   - 'Tracker URL remover'
-#   - 'Unit converter plugin'
-#   - 'Ahmia blacklist'  # activation depends on outgoing.using_tor_proxy
-#   # these plugins are disabled if nothing is configured ..
-#   - 'Hostnames plugin'  # see 'hostnames' configuration below
-#   - 'Open Access DOI rewrite'
-#   - 'Tor check plugin'
+  searx.plugins.calculator.SXNGPlugin:
+    active: true
+
+  searx.plugins.hash_plugin.SXNGPlugin:
+    active: true
+
+  searx.plugins.self_info.SXNGPlugin:
+    active: true
+
+  searx.plugins.unit_converter.SXNGPlugin:
+    active: true
+
+  searx.plugins.ahmia_filter.SXNGPlugin:
+    active: true
+
+  searx.plugins.hostnames.SXNGPlugin:
+    active: true
+
+  searx.plugins.oa_doi_rewrite.SXNGPlugin:
+    active: false
+
+  searx.plugins.tor_check.SXNGPlugin:
+    active: false
+
+  searx.plugins.tracker_url_remover.SXNGPlugin:
+    active: true
+
 
 # Configuration of the "Hostnames plugin":
 #
 # hostnames:
 #   replace:
-#     '(.*\.)?youtube\.com$': 'invidious.example.com'
-#     '(.*\.)?youtu\.be$': 'invidious.example.com'
+#     '(.*\.)?youtube\.com$': 'yt.example.com'
+#     '(.*\.)?youtu\.be$': 'yt.example.com'
 #     '(.*\.)?reddit\.com$': 'teddit.example.com'
 #     '(.*\.)?redd\.it$': 'teddit.example.com'
 #     '(www\.)?twitter\.com$': 'nitter.example.com'
@@ -269,8 +267,8 @@ outgoing:
 #  replace: 'rewrite-hosts.yml'
 #
 # Content of 'rewrite-hosts.yml' (place the file in the same directory as 'settings.yml'):
-# '(.*\.)?youtube\.com$': 'invidious.example.com'
-# '(.*\.)?youtu\.be$': 'invidious.example.com'
+# '(.*\.)?youtube\.com$': 'yt.example.com'
+# '(.*\.)?youtu\.be$': 'yt.example.com'
 #
 
 checker:
@@ -421,6 +419,11 @@ engines:
     disabled: true
     shortcut: aa
 
+  - name: ansa
+    engine: ansa
+    shortcut: ans
+    disabled: true
+
   # - name: annas articles
   #   engine: annas_archive
   #   shortcut: aaa
@@ -550,6 +553,11 @@ engines:
     engine: bing_videos
     shortcut: biv
     disabled: false
+  - name: bitchute
+    engine: bitchute
+    shortcut: bit
+    disabled: false
+
   - name: bitbucket
     engine: xpath
     paging: true
@@ -600,23 +608,37 @@ engines:
     # to show premium or plus results too:
     # skip_premium: false
 
+  # WARNING: links from chinaso.com voilate users privacy
+  # Before activate these engines its mandatory to read
+  # - https://github.com/searxng/searxng/issues/4694
+  # - https://docs.searxng.org/dev/engines/online/chinaso.html
+
   - name: chinaso news
-    chinaso_category: news
     engine: chinaso
     shortcut: chinaso
+    categories: [news]
+    chinaso_category: news
+    chinaso_news_source: all
     disabled: true
+    inactive: true
 
   - name: chinaso images
-    chinaso_category: images
     engine: chinaso
+    network: chinaso news
     shortcut: chinasoi
+    categories: [images]
+    chinaso_category: images
     disabled: true
+    inactive: true
 
   - name: chinaso videos
-    chinaso_category: videos
     engine: chinaso
+    network: chinaso news
     shortcut: chinasov
+    categories: [videos]
+    chinaso_category: videos
     disabled: true
+    inactive: true
 
   - name: cloudflareai
     engine: cloudflareai
@@ -691,26 +713,6 @@ engines:
     categories: news
     search_type: news
     disabled: true
-
-  - name: curlie
-    engine: xpath
-    shortcut: cl
-    categories: general
-    disabled: true
-    paging: true
-    lang_all: ''
-    search_url: https://curlie.org/search?q={query}&lang={lang}&start={pageno}&stime=92452189
-    page_size: 20
-    results_xpath: //div[@id="site-list-content"]/div[@class="site-item"]
-    url_xpath: ./div[@class="title-and-desc"]/a/@href
-    title_xpath: ./div[@class="title-and-desc"]/a/div
-    content_xpath: ./div[@class="title-and-desc"]/div[@class="site-descr"]
-    about:
-      website: https://curlie.org/
-      wikidata_id: Q60715723
-      use_official_api: false
-      require_api_key: false
-      results: HTML
 
   - name: currency
     engine: currency_convert
@@ -1064,7 +1066,6 @@ engines:
 
   - name: material icons
     engine: material_icons
-    categories: images
     shortcut: mi
     disabled: true
 
@@ -1125,6 +1126,28 @@ engines:
       require_api_key: false
       results: JSON
 
+  - name: il post
+    engine: il_post
+    shortcut: pst
+    disabled: true
+
+  - name: huggingface
+    engine: huggingface
+    shortcut: hf
+    disabled: true
+
+  - name: huggingface datasets
+    huggingface_endpoint: datasets
+    engine: huggingface
+    shortcut: hfd
+    disabled: true
+
+  - name: huggingface spaces
+    huggingface_endpoint: spaces
+    engine: huggingface
+    shortcut: hfs
+    disabled: true
+
   - name: imdb
     engine: imdb
     shortcut: imdb
@@ -1142,16 +1165,15 @@ engines:
     timeout: 6.0
     disabled: true
 
-  - name: invidious
-    engine: invidious
-    # Instanes will be selected randomly, see https://api.invidious.io/ for
-    # instances that are stable (good uptime) and close to you.
-    base_url:
-      - https://invidious.adminforge.de
-      - https://inv.nadeko.net
-    shortcut: iv
-    timeout: 3.0
-    disabled: true
+  # - name: invidious
+  #   engine: invidious
+  #   # if you want to use invidious with SearXNG you should setup one locally
+  #   # https://github.com/searxng/searxng/issues/2722#issuecomment-2884993248
+  #   base_url:
+  #     - https://invidious.example1.com
+  #     - https://invidious.example2.com
+  #   shortcut: iv
+  #   timeout: 3.0
 
   - name: ipernity
     engine: ipernity
@@ -1227,12 +1249,14 @@ engines:
     shortcut: zlib
     categories: files
     timeout: 7.0
+    disabled: true
 
   - name: library of congress
     disabled: true
     engine: loc
     shortcut: loc
     categories: images
+    disabled: true
 
   - name: libretranslate
     engine: libretranslate
@@ -1313,12 +1337,19 @@ engines:
     disabled: true
     number_of_results: 20
 
+  # https://docs.searxng.org/dev/engines/offline/search-indexer-engines.html#module-searx.engines.meilisearch
   # - name: meilisearch
   #   engine: meilisearch
   #   shortcut: mes
   #   enable_http: true
   #   base_url: http://localhost:7700
   #   index: my-index
+  #   auth_key: Bearer XXXX
+
+  - name: microsoft learn
+    engine: microsoft_learn
+    shortcut: msl
+    disabled: true
 
   - name: mixcloud
     engine: mixcloud
@@ -1355,6 +1386,11 @@ engines:
     shortcut: mwm
     disabled: true
 
+  - name: niconico
+    engine: niconico
+    shortcut: nico
+    disabled: true
+
   - name: npm
     engine: npm
     shortcut: npm
@@ -1382,18 +1418,31 @@ engines:
       require_api_key: false
       results: JSON
 
-  # read https://docs.searxng.org/dev/engines/online/mullvad_leta.html
-  # - name: mullvadleta
-  #   engine: mullvad_leta
-  #   leta_engine: google # choose one of the following: google, brave
-  #   use_cache: true  # Only 100 non-cache searches per day, suggested only for private instances
-  #   search_url: https://leta.mullvad.net
-  #   categories: [general, web]
-  #   shortcut: ml
+  # https://docs.searxng.org/dev/engines/online/mullvad_leta.html
+  - name: mullvadleta
+    engine: mullvad_leta
+    disabled: true
+    leta_engine: google
+    categories: [general, web]
+    shortcut: ml
+
+  - name: mullvadleta brave
+    engine: mullvad_leta
+    network: mullvadleta
+    disabled: true
+    leta_engine: brave
+    disabled: true
+    categories: [general, web]
+    shortcut: mlb
 
   - name: odysee
     engine: odysee
     shortcut: od
+    disabled: true
+
+  - name: ollama
+    engine: ollama
+    shortcut: ollama
     disabled: true
 
   - name: openairedatasets
@@ -1660,12 +1709,27 @@ engines:
     shortcut: pypi
     engine: pypi
 
+  - name: quark
+    quark_category: general
+    categories: [general]
+    engine: quark
+    shortcut: qk
+    disabled: true
+
+  - name: quark images
+    quark_category: images
+    categories: [images]
+    engine: quark
+    shortcut: qki
+    disabled: true
+
   - name: qwant
     disabled: true
     qwant_categ: web
     engine: qwant
     shortcut: qw
     categories: [general, web]
+    disabled: true
     additional_tests:
       rosebud: *test_rosebud
 
@@ -1724,6 +1788,12 @@ engines:
     shortcut: re
     page_size: 25
     disabled: true
+
+  - name: reuters
+    engine: reuters
+    shortcut: reu
+    # https://docs.searxng.org/dev/engines/online/reuters.html
+    # sort_order = "relevance"
 
   - name: right dao
     engine: xpath
@@ -1919,6 +1989,11 @@ engines:
     categories: [images, web]
     shortcut: spi
 
+  - name: steam
+    engine: steam
+    shortcut: stm
+    disabled: true
+
   - name: tokyotoshokan
     engine: tokyotoshokan
     shortcut: tt
@@ -1986,6 +2061,16 @@ engines:
     categories: onions
     enable_http: true
     shortcut: tch
+
+  # TubeArchivist is a self-hosted Youtube archivist software.
+  # https://docs.searxng.org/dev/engines/online/tubearchivist.html
+  #
+  # - name: tubearchivist
+  #   engine: tubearchivist
+  #   shortcut: tuba
+  #   base_url:
+  #   ta_token:
+  #   ta_link_to_mp4: false
 
   # torznab engine lets you query any torznab compatible indexer.  Using this
   # engine in combination with Jackett opens the possibility to query a lot of
@@ -2316,25 +2401,31 @@ engines:
     disabled: true
 
   - name: naver
-    shortcut: nvr
     categories: [general, web]
-    engine: xpath
-    paging: true
-    search_url: https://search.naver.com/search.naver?where=webkr&sm=osp_hty&ie=UTF-8&query={query}&start={pageno}
-    url_xpath: //a[@class="link_tit"]/@href
-    title_xpath: //a[@class="link_tit"]
-    content_xpath: //div[@class="total_dsc_wrap"]/a
-    first_page_num: 1
-    page_size: 10
+    engine: naver
+    shortcut: nvr
     disabled: true
-    about:
-      website: https://www.naver.com/
-      wikidata_id: Q485639
-      official_api_documentation: https://developers.naver.com/docs/nmt/examples/
-      use_official_api: false
-      require_api_key: false
-      results: HTML
-      language: ko
+
+  - name: naver images
+    naver_category: images
+    categories: [images]
+    engine: naver
+    shortcut: nvri
+    disabled: true
+
+  - name: naver news
+    naver_category: news
+    categories: [news]
+    engine: naver
+    shortcut: nvrn
+    disabled: true
+
+  - name: naver videos
+    naver_category: videos
+    categories: [videos]
+    engine: naver
+    shortcut: nvrv
+    disabled: true
 
   - name: rubygems
     shortcut: rbg
@@ -2481,6 +2572,11 @@ engines:
     engine: tootfinder
     shortcut: toot
 
+  - name: uxwing
+    engine: uxwing
+    shortcut: ux
+    disabled: true
+
   - name: voidlinux
     engine: voidlinux
     shortcut: void
@@ -2491,6 +2587,7 @@ engines:
     engine: wallhaven
     # api_key: abcdefghijklmnopqrstuvwxyz
     shortcut: wh
+    disabled: true
 
     # wikimini: online encyclopedia for children
     # The fulltext and title parameter is necessary for Wikimini because
@@ -2621,6 +2718,24 @@ engines:
     shortcut: pgo
     disabled: true
 
+  - name: senscritique
+    engine: senscritique
+    shortcut: scr
+    timeout: 4.0
+    disabled: true
+
+  - name: minecraft wiki
+    engine: mediawiki
+    shortcut: mcw
+    categories: ["software wikis"]
+    base_url: https://minecraft.wiki/
+    api_path: "api.php"
+    search_type: text
+    disabled: true
+    about:
+      website: https://minecraft.wiki/
+      wikidata_id: Q105533483
+
 # Doku engine lets you access to any Doku wiki instance:
 # A public one or a privete/corporate one.
 #  - name: ubuntuwiki
@@ -2702,7 +2817,6 @@ engines:
 doi_resolvers:
   oadoi.org: 'https://oadoi.org/'
   doi.org: 'https://doi.org/'
-  doai.io: 'https://dissem.in/'
   sci-hub.se: 'https://sci-hub.se/'
   sci-hub.st: 'https://sci-hub.st/'
   sci-hub.ru: 'https://sci-hub.ru/'
