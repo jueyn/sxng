@@ -95,7 +95,7 @@ server:
   # If your instance owns a /etc/searxng/settings.yml file, then set the following
   # values there.
 
-  secret_key: "mikrsv3ROwxoRQirtuz4Qyfj3PD43BzK"  # Is overwritten by ${SEARXNG_SECRET}
+  secret_key: "ultrasecretkey"  # Is overwritten by ${SEARXNG_SECRET}
   # Proxy image results through SearXNG. Is overwritten by ${SEARXNG_IMAGE_PROXY}
   image_proxy: false
   # 1.0 and 1.1 are supported
@@ -532,30 +532,32 @@ engines:
   - name: bilibili
     engine: bilibili
     shortcut: bil
-    disabled: false
+    disabled: true
 
   - name: bing
     engine: bing
     shortcut: bi
-    disabled: false
+    disabled: true
 
   - name: bing images
+    disabled: true
     engine: bing_images
     shortcut: bii
-    disabled: false
+
   - name: bing news
     disabled: true
     engine: bing_news
     shortcut: bin
-    disabled: false
+
   - name: bing videos
+    disabled: true
     engine: bing_videos
     shortcut: biv
-    disabled: false
+
   - name: bitchute
     engine: bitchute
     shortcut: bit
-    disabled: false
+    disabled: true
 
   - name: bitbucket
     engine: xpath
@@ -1430,7 +1432,6 @@ engines:
     network: mullvadleta
     disabled: true
     leta_engine: brave
-    disabled: true
     categories: [general, web]
     shortcut: mlb
 
@@ -2633,8 +2634,8 @@ engines:
     disabled: true
 
   - name: brave
-    engine: brave
     disabled: true
+    engine: brave
     shortcut: br
     time_range_support: true
     paging: true
@@ -2643,32 +2644,32 @@ engines:
     # brave_spellcheck: true
 
   - name: brave.images
-    engine: brave
     disabled: true
+    engine: brave
     network: brave
     shortcut: brimg
     categories: [images, web]
     brave_category: images
 
   - name: brave.videos
-    engine: brave
     disabled: true
+    engine: brave
     network: brave
     shortcut: brvid
     categories: [videos, web]
     brave_category: videos
 
   - name: brave.news
-    engine: brave
     disabled: true
+    engine: brave
     network: brave
     shortcut: brnews
     categories: news
     brave_category: news
 
   # - name: brave.goggles
-  #   engine: brave
     disabled: true
+  #   engine: brave
   #   network: brave
   #   shortcut: brgog
   #   time_range_support: true
